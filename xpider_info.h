@@ -39,21 +39,21 @@ public:
   };
 
   struct DefGroupInfoData {
-    uint8_t type; /*0x05*/
-    uint8_t ver;  /*default 0*/
-    uint8_t length_low; /*default 6byte: 1 type + 1 ver + 2 length + 1byte 0 + 1byte CRC*/
+    uint8_t type;                         /* 0x05 */
+    uint8_t ver;                          /* default 0 */
+    uint8_t length_low;                   /* default 6byte: 1 type + 1 ver + 2 length + 1byte 0 + 1byte CRC */
     uint8_t length_high;
     uint8_t padGroupId;
-    uint8_t padGroupInfo;  /* always 0*/
+    uint8_t padGroupInfo;                 /* always 0 */
     uint8_t crc;
   };
   struct DefNnInfoData {
-    uint8_t type; /*0x06*/
-    uint8_t ver;  /*default 0*/
-    uint8_t length_low; /*default 6byte: 1 type + 1 ver + 2 length + 1byte 0 + 1byte CRC*/
+    uint8_t type;                         /* 0x06 */
+    uint8_t ver;                          /* default 0 */
+    uint8_t length_low;                   /* default 6byte: 1 type + 1 ver + 2 length + 1byte 0 + 1byte CRC */
     uint8_t length_high;
-    uint8_t pad1;  /* always 0, 0 byte sensor*/
-    uint8_t nn_length_low;   /*0 byte nn data*/
+    uint8_t pad1;                         /* always 0, 0 byte sensor */
+    uint8_t nn_length_low;                /* 0 byte nn data */
     uint8_t nn_length_high;
     uint8_t crc;
   };
@@ -89,7 +89,8 @@ public:
 
   float yaw_pitch_roll[3];
 
-  char firmware_version_[20];
+  char firmware_version[20];
+  char controller_version[20];
 
   CustomData custom_data_;
 
@@ -163,7 +164,7 @@ public:
   LinkedList<GroupElement*> *action_group_list = new LinkedList<GroupElement*>[MAX_GROUP_NUM]();
 
   uint8_t last_group_id = 0xff;
-  uint8_t isActionFinish = 0; /*0 means finish, 1 means action is running*/
+  uint8_t isActionFinish = 0; /* 0 means finish, 1 means action is running */
 
   ActionStatus action_status;
 
@@ -178,11 +179,9 @@ public:
   uint8_t running_group_id = 0xff;
   uint8_t running_action_id = 0xff;
   bool is_free = true;
-  XpiderInfo::GroupElement *SetCurrentAction(uint8_t action_num, bool enable, uint32_t start_time); /*false: action not finish, or no more action to do*/
+  XpiderInfo::GroupElement *SetCurrentAction(uint8_t action_num, bool enable, uint32_t start_time); /* false: action not finish, or no more action to do */
   XpiderInfo::GroupElement *getCurrentAction();
   uint8_t getCurrentActionId();
 
 };
 #endif // XPIDER_INFO_H_
-
-

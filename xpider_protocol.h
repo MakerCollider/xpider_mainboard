@@ -44,8 +44,9 @@ public:
   enum RegIndex {
     kRegUUID,
     kRegName,
-    kRegVersion,
-    kRegFirmware,
+    kRegHardwareVersion,
+    kRegFirmwareVersion,
+    kRegControllerVersion
   };
 
   XpiderProtocol();

@@ -30,6 +30,12 @@ public:
     kUnknown,
     kMoveStep,
     kAutoMove,
+    kGetRegister,
+    kRegisterResponse
+  };
+
+  enum RegisterIndex {
+    kControllerVersion
   };
 
   struct HeartBeatStruct {
@@ -48,6 +54,8 @@ public:
   typedef void (* SetEyeCallbackType) (uint8_t);
   typedef void (* SetFrontLedsCallbackType) (const uint8_t[6]);
   typedef void (* HeartBeatCallbackType) (HeartBeatStruct);
+  typedef void (* GetRegisterCallbackType) (RegisterIndex);
+  typedef void (* RegisterResponseCallbackType) (RegisterIndex, const uint8_t*, uint8_t);
 
   struct CallbackListStruct {
     MoveCallbackType move;
@@ -57,6 +65,8 @@ public:
     SetEyeCallbackType set_eye;
     SetFrontLedsCallbackType set_front_leds;
     HeartBeatCallbackType heartbeat;
+    GetRegisterCallbackType get_register;
+    RegisterResponseCallbackType register_response;
   };
 
   XpiderInsideProtocol();
@@ -72,12 +82,12 @@ public:
   void SetFrontLeds(const uint8_t[6]);
   void SetHeartBeat(HeartBeatStruct heatbeat);
   void SetAutoMove(uint8_t rotate_speed, float rotate_rad, uint8_t walk_speed, int8_t walk_step);
+  void GetRegister(RegisterIndex register_index);
+  void RegisterResponse(RegisterIndex register_index, const uint8_t *value, uint8_t length);
 private:
   SendType Send;
 
 private:
-  uint8_t buffer_[20];
-
   CallbackListStruct callback_list_;
 };
 

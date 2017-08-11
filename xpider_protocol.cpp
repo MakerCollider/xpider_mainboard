@@ -328,20 +328,24 @@ XpiderProtocol::MessageType XpiderProtocol::GetMessage(const uint8_t *buffer, co
     case kUpdateRegister:
     case kRegisterResponse: {
       switch(buffer[1]) {
+        case kRegUUID: {
+          memcpy(&xpider_info_->custom_data_.uuid, &buffer[3], buffer[2]);
+          break;
+        }
         case kRegName: {
           memcpy(&xpider_info_->custom_data_.name, &buffer[3], buffer[2]);
           break;
         }
-        case kRegVersion: {
+        case kRegHardwareVersion: {
           memcpy(&xpider_info_->custom_data_.hardware_version, &buffer[3], buffer[2]);
           break;
         }
-        case kRegFirmware: {
-          memcpy(&xpider_info_->firmware_version_, &buffer[3], buffer[2]);
+        case kRegFirmwareVersion: {
+          memcpy(&xpider_info_->firmware_version, &buffer[3], buffer[2]);
           break;
         }
-        case kRegUUID: {
-          memcpy(&xpider_info_->custom_data_.uuid, &buffer[3], buffer[2]);
+        case kRegControllerVersion: {
+          memcpy(&xpider_info_->controller_version, &buffer[3], buffer[2]);
           break;
         }
         default: {
@@ -662,6 +666,13 @@ void XpiderProtocol::GetRegister(const RegIndex &register_index, uint8_t **send_
 void XpiderProtocol::UpdateRegister(const RegIndex &register_index, uint8_t **send_buffer, uint16_t *length) {
   send_msg_buffer_[0] = kUpdateRegister;
   switch(register_index) {
+    case kRegUUID: {
+      send_msg_buffer_[1] = kRegUUID;
+      send_msg_buffer_[2] = 4;
+      memcpy(&send_msg_buffer_[3], &xpider_info_->custom_data_.uuid, send_msg_buffer_[2]);
+      *length = 3 + send_msg_buffer_[2];
+      break;
+    }
     case kRegName: {
       send_msg_buffer_[1] = kRegName;
       send_msg_buffer_[2] = strlen(xpider_info_->custom_data_.name)+1;
@@ -669,25 +680,26 @@ void XpiderProtocol::UpdateRegister(const RegIndex &register_index, uint8_t **se
       *length = 3 + send_msg_buffer_[2];
       break;
     }
-    case kRegVersion: {
-      send_msg_buffer_[1] = kRegVersion;
+    case kRegHardwareVersion: {
+      send_msg_buffer_[1] = kRegHardwareVersion;
       send_msg_buffer_[2] = strlen(xpider_info_->custom_data_.hardware_version)+1;
       memcpy(&send_msg_buffer_[3], &xpider_info_->custom_data_.hardware_version, send_msg_buffer_[2]);
       *length = 3 + send_msg_buffer_[2];
       break;
     }
-    case kRegFirmware: {
-      send_msg_buffer_[1] = kRegFirmware;
-      send_msg_buffer_[2] = strlen(xpider_info_->firmware_version_)+1;
-      memcpy(&send_msg_buffer_[3], &xpider_info_->firmware_version_, send_msg_buffer_[2]);
+    case kRegFirmwareVersion: {
+      send_msg_buffer_[1] = kRegFirmwareVersion;
+      send_msg_buffer_[2] = strlen(xpider_info_->firmware_version)+1;
+      memcpy(&send_msg_buffer_[3], &xpider_info_->firmware_version, send_msg_buffer_[2]);
       *length = 3 + send_msg_buffer_[2];
       break;
     }
-    case kRegUUID: {
-      send_msg_buffer_[1] = kRegUUID;
-      send_msg_buffer_[2] = 4;
-      memcpy(&send_msg_buffer_[3], &xpider_info_->custom_data_.uuid, send_msg_buffer_[2]);
+    case kRegControllerVersion: {
+      send_msg_buffer_[1] = kRegControllerVersion;
+      send_msg_buffer_[2] = strlen(xpider_info_->controller_version)+1;
+      memcpy(&send_msg_buffer_[3], &xpider_info_->controller_version, send_msg_buffer_[2]);
       *length = 3 + send_msg_buffer_[2];
+      break;
     }
   }
 
@@ -700,6 +712,13 @@ void XpiderProtocol::RegisterResponse(const RegIndex &register_index, uint8_t **
   send_msg_buffer_[0] = kRegisterResponse;
 
   switch(register_index) {
+    case kRegUUID: {
+      send_msg_buffer_[1] = kRegUUID;
+      send_msg_buffer_[2] = 4;
+      memcpy(&send_msg_buffer_[3], &xpider_info_->custom_data_.uuid, send_msg_buffer_[2]);
+      *length = 3 + send_msg_buffer_[2];
+      break;
+    }
     case kRegName: {
       send_msg_buffer_[1] = kRegName;
       send_msg_buffer_[2] = strlen(xpider_info_->custom_data_.name)+1;
@@ -707,25 +726,26 @@ void XpiderProtocol::RegisterResponse(const RegIndex &register_index, uint8_t **
       *length = 3 + send_msg_buffer_[2];
       break;
     }
-    case kRegVersion: {
-      send_msg_buffer_[1] = kRegVersion;
+    case kRegHardwareVersion: {
+      send_msg_buffer_[1] = kRegHardwareVersion;
       send_msg_buffer_[2] = strlen(xpider_info_->custom_data_.hardware_version)+1;
       memcpy(&send_msg_buffer_[3], &xpider_info_->custom_data_.hardware_version, send_msg_buffer_[2]);
       *length = 3 + send_msg_buffer_[2];
       break;
     }
-    case kRegFirmware: {
-      send_msg_buffer_[1] = kRegFirmware;
-      send_msg_buffer_[2] = strlen(xpider_info_->firmware_version_)+1;
-      memcpy(&send_msg_buffer_[3], &xpider_info_->firmware_version_, send_msg_buffer_[2]);
+    case kRegFirmwareVersion: {
+      send_msg_buffer_[1] = kRegFirmwareVersion;
+      send_msg_buffer_[2] = strlen(xpider_info_->firmware_version)+1;
+      memcpy(&send_msg_buffer_[3], &xpider_info_->firmware_version, send_msg_buffer_[2]);
       *length = 3 + send_msg_buffer_[2];
       break;
     }
-    case kRegUUID: {
-      send_msg_buffer_[1] = kRegUUID;
-      send_msg_buffer_[2] = 4;
-      memcpy(&send_msg_buffer_[3], &xpider_info_->custom_data_.uuid, send_msg_buffer_[2]);
+    case kRegControllerVersion: {
+      send_msg_buffer_[1] = kRegControllerVersion;
+      send_msg_buffer_[2] = strlen(xpider_info_->controller_version)+1;
+      memcpy(&send_msg_buffer_[3], &xpider_info_->controller_version, send_msg_buffer_[2]);
       *length = 3 + send_msg_buffer_[2];
+      break;      
     }
   }
 

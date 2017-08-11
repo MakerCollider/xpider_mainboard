@@ -31,7 +31,8 @@
 
 #include "arduino_log.h"
 
-#define FIRMWARE_VERSION "3.0.0"
+#define FIRMWARE_VERSION "3.1.0"
+
 #define HEART_BEAT_PERIOD 100000
 #define COMM_CHECK_PERIOD 4000000
 #define NN_INPUT_PERIOD   2000000
@@ -52,6 +53,7 @@ PID *g_pid;
 Task g_task_heartbeat, g_task_nn_input, g_task_nn_run, g_task_auto_pilot;
 Task g_task_check_comm;
 
+bool g_controller_ack = false;
 bool g_comm_watchdog = true;
 
 XpiderInfo g_xpider_info;
@@ -289,6 +291,21 @@ void UploadHeartBeat() {
   
   /* Encode with hdlc and send */
   g_network_hdlc->frameDecode(buffer, buffer_length);
+}
+
+void RegisterResponse(XpiderInsideProtocol::RegisterIndex register_index, const uint8_t *value, uint8_t length) {
+  switch(register_index) {
+    case XpiderInsideProtocol::kControllerVersion: {
+      g_controller_ack = true;
+      memcpy(g_xpider_info.controller_version, value, length);
+      LOG_PRINT("Controller Version: ");
+      LOG_PRINT(g_xpider_info.controller_version);
+      LOG_PRINT(", length: ");
+      LOG_PRINT(strlen(g_xpider_info.controller_version));
+      LOG_PRINT(", input length: ");
+      LOG_PRINTLN(static_cast<int>(length));
+    }
+  }
 }
 
 void CommCheck() {
@@ -547,7 +564,7 @@ void setup() {
   g_xpider_memory->OpenDataFile();
   g_xpider_memory->ReadCustomData(&g_xpider_info.custom_data_);
   String temp = FIRMWARE_VERSION;
-  memcpy(g_xpider_info.firmware_version_, temp.c_str(), temp.length());
+  memcpy(g_xpider_info.firmware_version, temp.c_str(), temp.length());
   LOG_PRINTLN("OK!");
   LOG_PRINT("Name: ");
   LOG_PRINT(g_xpider_info.custom_data_.name);
@@ -556,13 +573,14 @@ void setup() {
   LOG_PRINT(", UUID: ");
   LOG_PRINT(g_xpider_info.custom_data_.uuid);
   LOG_PRINT(", firmware_version: ");
-  LOG_PRINTLN(g_xpider_info.firmware_version_);
+  LOG_PRINTLN(g_xpider_info.firmware_version);
 
   LOG_PRINT("Initialize protocol...");
   g_xpider_protocol.Initialize(&g_xpider_info);
 
   XpiderInsideProtocol::CallbackListStruct callback_list;
   callback_list.heartbeat = &GetHeartBeat;
+  callback_list.register_response = &RegisterResponse;
   g_xpider_inside_protocol.Initialize(&InsideSendData, callback_list);
   LOG_PRINTLN("OK!");
 
@@ -594,6 +612,13 @@ void setup() {
   Serial1.begin(115200);
   g_controller_serial.begin(9600);
   LOG_PRINTLN("OK!");
+
+  while(g_controller_ack == false) {
+    g_xpider_inside_protocol.GetRegister(XpiderInsideProtocol::kControllerVersion);
+    delay(500);
+    ReceiveData();
+    LOG_PRINTLN("Get controller version...");
+  }
 
   LOG_PRINTLN("All Done!");
 }

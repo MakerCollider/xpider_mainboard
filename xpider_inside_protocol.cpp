@@ -95,6 +95,14 @@ XpiderInsideProtocol::MessageType XpiderInsideProtocol::Decode(const uint8_t *bu
       }
       break;
     }
+    case kGetRegister: {
+      callback_list_.get_register(static_cast<RegisterIndex>(buffer[1]));
+      break;
+    }
+    case kRegisterResponse: {
+      callback_list_.register_response(static_cast<RegisterIndex>(buffer[1]), &buffer[3], buffer[2]);
+      break;
+    }
     case kUnknown:
     default: {
     }
@@ -165,4 +173,24 @@ void XpiderInsideProtocol::SetHeartBeat(HeartBeatStruct heartbeat) {
   }
   memcpy(&buffer[7], &temp_imu, 6);
   Send(buffer, 13);
+}
+
+void XpiderInsideProtocol::GetRegister(RegisterIndex register_index) {
+  uint8_t buffer[2];
+
+  buffer[0] = kGetRegister;
+  buffer[1] = static_cast<uint8_t>(register_index);
+
+  Send(buffer, 2);
+}
+
+void XpiderInsideProtocol::RegisterResponse(RegisterIndex register_index, const uint8_t *value, uint8_t length) {
+  uint8_t buffer[3+length];
+  
+  buffer[0] = kRegisterResponse;
+  buffer[1] = static_cast<uint8_t>(register_index);
+  buffer[2] = length;
+  memcpy(buffer+3, value, length);
+
+  Send(buffer, 3+length);
 }
