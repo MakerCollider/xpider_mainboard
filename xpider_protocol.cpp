@@ -417,6 +417,8 @@ void XpiderProtocol::CombineMsg(const uint8_t *buffer, const uint8_t &one_time_b
   }else{
     if(buffer[0] == 0x05){
       isWholeGroupInfo = false;
+      LOG_PRINT("UNread bytes: ");
+      LOG_PRINTLN(int(group_info_unread_byte));
       if(group_info_unread_byte != 0){
         /*copy pure data no 1 byte header*/
         memcpy(totalMsg+total_msg_position, buffer+1, one_time_buffer_length);
@@ -426,7 +428,7 @@ void XpiderProtocol::CombineMsg(const uint8_t *buffer, const uint8_t &one_time_b
         //Serial.print("Receive Group Info msg, group_info_unread_byte = ");
         //Serial.println(group_info_unread_byte);
       }else{
-        //Serial.println("Error: That will never happen! Group Info");
+        LOG_PRINTLN("Error: That will never happen! Group Info");
       }
     }else if(buffer[0] == 0x06) {
       isWholeNnInfo = false;
@@ -439,7 +441,7 @@ void XpiderProtocol::CombineMsg(const uint8_t *buffer, const uint8_t &one_time_b
         //Serial.print("Receive NN Info msg, nn_info_unread_byte = ");
         //Serial.println(nn_info_unread_byte);
       }else{
-        //Serial.println("Error: That will never happen! NN Info");
+        LOG_PRINTLN("Error: That will never happen! NN Info");
       }
     }
   }

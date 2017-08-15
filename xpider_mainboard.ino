@@ -31,7 +31,7 @@
 
 #include "arduino_log.h"
 
-#define FIRMWARE_VERSION "3.1.0"
+#define FIRMWARE_VERSION "3.3.0"
 
 #define HEART_BEAT_PERIOD 100000
 #define COMM_CHECK_PERIOD 4000000
@@ -39,7 +39,7 @@
 #define AUTO_PILOT_PERIOD 100000
 #define NN_RUN_PERIOD     10000
 
-#define MIN_VOLTAGE 3.55f
+#define MIN_VOLTAGE 3.4f
 
 enum TASK_ID {
   TASK_LED = 0,
@@ -79,7 +79,7 @@ void inside_frame_handler(const uint8_t *data, uint16_t length) {
 }
 
 void network_frame_handler(const uint8_t *data, uint16_t length) {
-  // LOG_PRINT("Get Command: ");
+  LOG_PRINT("Get Command: ");
   XpiderProtocol::MessageType message_type = g_xpider_protocol.GetMessage(data, length);
 
   switch (message_type) {
@@ -138,6 +138,7 @@ void network_frame_handler(const uint8_t *data, uint16_t length) {
       break;
     }
     case XpiderProtocol::kGroupInfo: {
+      LOG_PRINTLN("GroupInfo");
       if(g_xpider_protocol.isWholeGroupInfoMsg()){
         /*recv whole Group Info msg, need to write to flash*/
         uint8_t *tempbuffer = NULL;
@@ -150,6 +151,7 @@ void network_frame_handler(const uint8_t *data, uint16_t length) {
       break;
     }
     case XpiderProtocol::kNNInfo: {
+      LOG_PRINTLN("NNInfo");
       if(g_xpider_protocol.isWholeNnInfoMsg()){
         /*recv whole Nn Info msg, need to write to flash*/
         uint8_t *tempbuffer = NULL;
@@ -183,6 +185,11 @@ void network_frame_handler(const uint8_t *data, uint16_t length) {
       g_task_nn_run.setEnabled(false);
       g_task_auto_pilot.setEnabled(false);
 
+      g_xpider_info.SetCurrentAction(0, false, 0);
+      g_xpider_info.is_free = true;
+      g_xpider_info.running_group_id = 0xff;
+      g_xpider_info.running_action_id = 0xff;
+
       g_xpider_inside_protocol.SetMove(0);
       g_xpider_inside_protocol.SetRotate(0);
       uint8_t leds[6] = {0};
@@ -207,6 +214,7 @@ void network_frame_handler(const uint8_t *data, uint16_t length) {
       break;
     }
     default: {
+      LOG_PRINTLN("Unknown");
     }
   }
 
@@ -415,7 +423,7 @@ void NN_Input() {
       }
       case XpiderInfo::idGyro: {
         for(uint8_t i=0; i<3; i++) {
-          temp[length] = (g_xpider_info.yaw_pitch_roll[i]-(-3.14)) * (255-0) / (3.14 - (-3.14)) + 0;
+          temp[length] = (g_xpider_info.yaw_pitch_roll[i]-(PI*2)) * (255-0) / (PI*2 - 0) + 0;
           LOG_PRINTF(g_xpider_info.yaw_pitch_roll[i], HEX);
           LOG_PRINT(" ");
           length += 1;
@@ -523,13 +531,15 @@ void LowVoltageAlert() {
   uint8_t led_on[6] = {50, 0, 0, 0, 50, 0};
   uint8_t led_off[6] = {0, 0, 0, 0, 0, 0};
 
+  LOG_PRINT("Low Voltage Alert....");
   g_xpider_inside_protocol.SetFrontLeds(led_on);
   delay(500);
   g_xpider_inside_protocol.SetFrontLeds(led_off);
   delay(500);
-  tone(5, 1000, 200);
+  tone(5, 1200, 200);
   delay(500);
-  tone(5, 1000, 200);
+  tone(5, 1200, 200);
+  LOG_PRINTLN("Done!");
 }
 
 void setup() {
