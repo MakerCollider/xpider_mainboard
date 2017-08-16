@@ -31,7 +31,7 @@
 
 #include "arduino_log.h"
 
-#define FIRMWARE_VERSION "3.3.0"
+#define FIRMWARE_VERSION "3.3.1"
 
 #define HEART_BEAT_PERIOD 100000
 #define COMM_CHECK_PERIOD 4000000
@@ -226,16 +226,17 @@ void InsideSendData(const uint8_t* buffer, uint8_t buffer_length) {
 }
 
 void AutoPilot() {
-  float delta_rad, speed_value;
+  float speed_value;
 
   if(g_xpider_info.autopilot_enable) {
-    delta_rad = g_xpider_info.autopilot_heading - g_xpider_info.yaw_pitch_roll[0];
-    int direction = delta_rad>0 ? -1 : 1;
-    delta_rad = abs(delta_rad)>PI ? (2.0*PI-abs(delta_rad))*direction : delta_rad;
+    float delta_rad1, delta_rad2;
+    delta_rad1 = g_xpider_info.autopilot_heading - g_xpider_info.yaw_pitch_roll[0];
+    delta_rad2 = delta_rad1<0 ? PI*2.0+delta_rad1 : delta_rad1-PI*2.0;
+    delta_rad1 = abs(delta_rad1)-abs(delta_rad2)>0 ? delta_rad2 : delta_rad1;
 
-    if(abs(delta_rad) > 0.27) {
+    if(abs(delta_rad1) > 0.27) {
       g_xpider_inside_protocol.SetMove(0);
-      speed_value = g_pid->update(0, delta_rad);
+      speed_value = g_pid->update(0, delta_rad1);
       speed_value = constrain(speed_value, -100, 100);
       g_xpider_inside_protocol.SetRotate(static_cast<int8_t>((-1)*speed_value));
     } else {
@@ -244,7 +245,7 @@ void AutoPilot() {
     }
 
      String serial_string = "AutoPilotDegree: " + String(g_xpider_info.autopilot_heading);
-     serial_string += ", Heading: " + String(g_xpider_info.yaw_pitch_roll[0]) + ", Delta: " + delta_rad;
+     serial_string += ", Heading: " + String(g_xpider_info.yaw_pitch_roll[0]) + ", Delta: " + delta_rad1;
      LOG_PRINTLN(serial_string);
   } else {
     g_xpider_inside_protocol.SetRotate(0);
@@ -603,7 +604,8 @@ void setup() {
   LOG_PRINTLN("OK!");
 
   LOG_PRINT("Autopilot task initialize...");
-  g_pid = new PID(55, 16, 0, -100, 100);
+  g_pid = new PID(70, 16, 0, -100, 100);
+  g_pid->clear();
   g_task_auto_pilot.init(AUTO_PILOT_PERIOD, AutoPilot);
   g_task_auto_pilot.setEnabled(false);
   LOG_PRINTLN("OK!");
