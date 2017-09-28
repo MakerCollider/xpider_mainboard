@@ -276,22 +276,22 @@ void GetHeartBeat(XpiderInsideProtocol::HeartBeatStruct heartbeat) {
   int sound_level = analogRead(SOUND_SENSOR);
   g_xpider_info.sound_level = map(sound_level, 0, 1023, 0, 255);
 
-  // LOG_PRINT("Get heartbeat, ");
-  // LOG_PRINT("Step: ");
-  // LOG_PRINT(g_xpider_info.step_counter);
-  // LOG_PRINT(", Obstacle: ");
-  // LOG_PRINT(g_xpider_info.obstacle_distance);
-  // LOG_PRINT(", Voltage: ");
-  // LOG_PRINT(g_xpider_info.voltage);
-  // LOG_PRINT(", Ypr: ");
-  // LOG_PRINT(g_xpider_info.yaw_pitch_roll[0]);
-  // LOG_PRINT(" ");
-  // LOG_PRINT(g_xpider_info.yaw_pitch_roll[1]);
-  // LOG_PRINT(" ");
-  // LOG_PRINT(g_xpider_info.yaw_pitch_roll[2]);
-  // LOG_PRINT(", Sound: ");
-  // LOG_PRINT(g_xpider_info.sound_level);
-  // LOG_PRINTLN("");
+  LOG_PRINT("Get heartbeat, ");
+  LOG_PRINT("Step: ");
+  LOG_PRINT(g_xpider_info.step_counter);
+  LOG_PRINT(", Obstacle: ");
+  LOG_PRINT(g_xpider_info.obstacle_distance);
+  LOG_PRINT(", Voltage: ");
+  LOG_PRINT(g_xpider_info.voltage);
+  LOG_PRINT(", Ypr: ");
+  LOG_PRINT(g_xpider_info.yaw_pitch_roll[0]);
+  LOG_PRINT(" ");
+  LOG_PRINT(g_xpider_info.yaw_pitch_roll[1]);
+  LOG_PRINT(" ");
+  LOG_PRINT(g_xpider_info.yaw_pitch_roll[2]);
+  LOG_PRINT(", Sound: ");
+  LOG_PRINT(g_xpider_info.sound_level);
+  LOG_PRINTLN("");
 }
 
 void UploadHeartBeat() {
@@ -330,7 +330,8 @@ void CommCheck() {
 
     g_xpider_inside_protocol.SetMove(0);
     g_xpider_inside_protocol.SetRotate(0);
-    uint8_t leds[6] = {0};
+    uint8_t leds[6] = {0, 0, 0, 0, 0, 0};
+    // uint8_t leds[6] = {0, 255, 0, 0, 255, 0};
     g_xpider_inside_protocol.SetFrontLeds(leds);
   }
 }
@@ -639,6 +640,9 @@ void setup() {
 }
 
 void loop() {
+  /* Test code */
+  //g_xpider_inside_protocol.SetMove(100);
+
   /* Receive data from wifi and controller*/
   ReceiveData();
 
