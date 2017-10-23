@@ -82,7 +82,7 @@ public:
   uint8_t right_led_rgb[3];
 
   bool eye_power;
-  int8_t eye_angle;
+  uint8_t eye_angle;
 
   bool autopilot_enable;
   float autopilot_heading;

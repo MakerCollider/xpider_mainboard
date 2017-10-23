@@ -34,9 +34,16 @@
 
 #include "arduino_log.h"
 
+//#define SWARM_MODE
+
 #define FIRMWARE_VERSION "3.3.1"
 
-#define HEART_BEAT_PERIOD 100000
+#ifndef SWARM_MODE
+  #define HEART_BEAT_PERIOD 100000
+#else
+  #define HEART_BEAT_PERIOD 1000000
+#endif
+
 #define COMM_CHECK_PERIOD 4000000
 #define NN_INPUT_PERIOD   2000000
 #define AUTO_PILOT_PERIOD 100000
@@ -321,6 +328,7 @@ void RegisterResponse(XpiderInsideProtocol::RegisterIndex register_index, const 
 }
 
 void CommCheck() {
+  LOG_PRINTLN("Comm Check");
   if(g_comm_watchdog == true) {
     g_comm_watchdog = false;
   } else {
@@ -330,8 +338,16 @@ void CommCheck() {
 
     g_xpider_inside_protocol.SetMove(0);
     g_xpider_inside_protocol.SetRotate(0);
-    uint8_t leds[6] = {0, 0, 0, 0, 0, 0};
-    // uint8_t leds[6] = {0, 255, 0, 0, 255, 0};
+
+    /* Set warnning led */
+    #ifndef SWARM_MODE
+      uint8_t leds[6] = {0, 0, 0, 0, 0, 0};
+    #else
+      static uint8_t swap_flag = 1;
+      uint8_t leds[6] = {0, 255*swap_flag, 255, 0, 255*swap_flag, 255};
+      // uint8_t leds[6] = {255, 0, 0, 255, 0, 0};
+      swap_flag = 1 - swap_flag;
+    #endif
     g_xpider_inside_protocol.SetFrontLeds(leds);
   }
 }
@@ -629,12 +645,14 @@ void setup() {
   g_controller_serial.begin(9600);
   LOG_PRINTLN("OK!");
 
-  while(g_controller_ack == false) {
-    g_xpider_inside_protocol.GetRegister(XpiderInsideProtocol::kControllerVersion);
-    delay(500);
-    ReceiveData();
-    LOG_PRINTLN("Get controller version...");
-  }
+  #ifndef SWARM_MODE
+    while(g_controller_ack == false) {
+      g_xpider_inside_protocol.GetRegister(XpiderInsideProtocol::kControllerVersion);
+      delay(500);
+      ReceiveData();
+      LOG_PRINTLN("Get controller version...");
+    }
+  #endif
 
   LOG_PRINTLN("All Done!");
 }
@@ -667,4 +685,6 @@ void loop() {
     
     LowVoltageAlert();
   }
+
+  // LOG_PRINTLN("Loop");
 }
